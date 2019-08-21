@@ -237,8 +237,8 @@ func (c *connection) recoverTopology() {
 		}
 	}
 
-	for id, consumer := range c.consumers {
-		rabbitmq.Logger.Println("tag recovered:", id)
+	for tag, consumer := range c.consumers {
+		rabbitmq.Logger.Println("consumer recovered:", tag)
 
 		if err := consumer.recover(); err != nil {
 			c.errorHandler.HandleTopologyRecoveryError(c, err)
