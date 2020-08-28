@@ -19,7 +19,7 @@ const (
 var ErrCanceled = errors.New("consumer canceled")
 
 type Handler interface {
-	HandleNext(amqp.Delivery)
+	HandleNext(amqp.Delivery) error
 	HandleCompleted() error
 	HandleCrash()
 }
@@ -141,7 +141,14 @@ func (c *Consumer) nextBatch(ds <-chan amqp.Delivery, closeCh <-chan *amqp.Error
 				return ErrCanceled
 			}
 
-			c.opts.Handler.HandleNext(delivery)
+			if err := c.opts.Handler.HandleNext(delivery); err != nil {
+				if err := delivery.Nack(false, true); err != nil {
+					return err
+				}
+
+				continue
+			}
+
 			c.deliveryTag = delivery.DeliveryTag
 
 			retrieved++
